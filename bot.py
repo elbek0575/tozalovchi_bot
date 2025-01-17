@@ -52,7 +52,7 @@ def contains_advertisement(update: Update) -> bool:
         url_pattern = r"(https?://|http://|www\.)\S+"
         # Ключевые слова, указывающие на рекламу
         ad_keywords = ["скидка", "купить", "реклама", "shop", "sale", "http", "https",
-                       "ищу", "людей", "доход", "работа", "работу"]
+                       "ищу", "людей", "доход", "работа", "работу", "человека", "удалёнка", "доллар", "долларов", "в лс", "нужно", "личку", "лич"]
         # Проверяем на наличие URL или ключевых слов
         if re.search(url_pattern, text) or any(keyword.lower() in text.lower() for keyword in ad_keywords):
             return True
