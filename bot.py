@@ -40,15 +40,6 @@ def contains_mention_link(update: Update) -> bool:
 
     return False
 
-def contains_specific_bot_message(update: Update) -> bool:
-    """Проверяет, содержит ли сообщение указанный текст или упоминание бота."""
-    if update.message:
-        specific_text = "@musgetbot"
-        text = update.message.text or ""
-        caption = update.message.caption or ""
-        return specific_text in text or specific_text in caption
-    return False
-
 # Фильтр для проверки рекламы или ссылок
 def contains_advertisement(update: Update) -> bool:
     """Проверяет, содержит ли сообщение URL-адреса или рекламные слова."""
@@ -80,6 +71,21 @@ async def is_admin_or_owner(chat_id: int, user_id: int, context: CallbackContext
                 return True
     except Exception as e:
         print(f"Ошибка при проверке администратора: {e}")
+    return False
+
+# Проверка, является ли сообщение системным или содержит текст '. теперь в группе'
+def contains_group_join_message(update: Update) -> bool:
+    """Проверяет, является ли сообщение системным о добавлении участника или содержит текст '. теперь в группе'."""
+    if update.message:
+        # Проверка на системное сообщение о добавлении участника
+        if bool(update.message.new_chat_members):
+            return True
+
+        # Проверка текста на точное совпадение с '. теперь в группе'
+        text = update.message.text or ""
+        if text.strip() == ". теперь в группе":
+            return True
+
     return False
 
 # Обработчик для удаления сообщений
@@ -126,17 +132,16 @@ async def delete_specific_bot_messages(update: Update, context: CallbackContext)
             print(f"[{request_counter}] Рекламное сообщение удалено в группе '{chat_title}'.")
             return
 
-        # Проверяем, содержит ли сообщение текст "@musgetbot"
-        if contains_specific_bot_message(update):
+        # Удаляем сообщения с текстом '. теперь в группе' или системные о добавлении участников
+        if contains_group_join_message(update):
             message_id = update.message.message_id
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-            print(f"[{request_counter}] Сообщение от бота с текстом '@musgetbot' удалено в группе '{chat_title}'.")
+            print(f"[{request_counter}] Сообщение с текстом '. теперь в группе' или системное сообщение о добавлении удалено в группе '{chat_title}'.")
             return
 
         print(f"[{request_counter}] Сообщение не удалено (не от бота, не содержит рекламу или упоминания).")
     except Exception as e:
         print(f"Ошибка при удалении сообщения: {e}")
-
 
 def main():
     # Создаём приложение
