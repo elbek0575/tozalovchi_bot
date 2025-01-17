@@ -83,7 +83,7 @@ def contains_group_join_message(update: Update) -> bool:
 
         # Проверка текста на точное совпадение с '. теперь в группе'
         text = update.message.text or ""
-        if text.strip() == "теперь в группе":
+        if text.strip() == " теперь в группе":
             return True
 
     return False
