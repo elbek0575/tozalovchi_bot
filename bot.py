@@ -32,12 +32,21 @@ def contains_mention_link(update: Update) -> bool:
         if "@" in caption:
             return True
 
-        # Проверяем пересланные сообщения
-        if update.message.forward_from:
+        # Проверяем пересланные сообщения (только если атрибут доступен)
+        if hasattr(update.message, "forward_from") and update.message.forward_from:
             forwarded_text = update.message.text or ""
             if "@" in forwarded_text:
                 return True
 
+    return False
+
+def contains_specific_bot_message(update: Update) -> bool:
+    """Проверяет, содержит ли сообщение указанный текст или упоминание бота."""
+    if update.message:
+        specific_text = "@musgetbot"
+        text = update.message.text or ""
+        caption = update.message.caption or ""
+        return specific_text in text or specific_text in caption
     return False
 
 # Фильтр для проверки рекламы или ссылок
@@ -46,15 +55,16 @@ def contains_advertisement(update: Update) -> bool:
     if update.message:
         # Проверяем текст сообщения
         text = update.message.text or ""
+        # Проверяем подпись, если есть медиа
+        caption = update.message.caption or ""
         # Регулярное выражение для поиска URL
-        url_pattern = r"(https?://|www\.)\S+"
+        url_pattern = r"(https?://|http://|www\.)\S+"
         # Ключевые слова, указывающие на рекламу
         ad_keywords = ["скидка", "купить", "реклама", "shop", "sale", "http", "https"]
         # Проверяем на наличие URL или ключевых слов
         if re.search(url_pattern, text) or any(keyword.lower() in text.lower() for keyword in ad_keywords):
             return True
-        # Проверяем подпись, если есть медиа
-        caption = update.message.caption or ""
+
         if re.search(url_pattern, caption) or any(keyword.lower() in caption.lower() for keyword in ad_keywords):
             return True
     return False
@@ -115,11 +125,11 @@ async def delete_specific_bot_messages(update: Update, context: CallbackContext)
             print(f"[{request_counter}] Рекламное сообщение удалено в группе '{chat_title}'.")
             return
 
-        # Дополнительно: обработка медиа или других типов сообщений
-        if update.message.photo or update.message.video or update.message.document:
+        # Проверяем, содержит ли сообщение текст "@musgetbot"
+        if contains_specific_bot_message(update):
             message_id = update.message.message_id
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-            print(f"[{request_counter}] Медиа-сообщение удалено в группе '{chat_title}'.")
+            print(f"[{request_counter}] Сообщение от бота с текстом '@musgetbot' удалено в группе '{chat_title}'.")
             return
 
         print(f"[{request_counter}] Сообщение не удалено (не от бота, не содержит рекламу или упоминания).")
