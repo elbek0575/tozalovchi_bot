@@ -61,6 +61,24 @@ def contains_advertisement(update: Update) -> bool:
             return True
     return False
 
+# Фильтр для поиска скрытых ссылок (Markdown и HTML)
+def contains_hidden_link(update: Update) -> bool:
+    """Проверяет, содержит ли сообщение скрытые ссылки."""
+    if update.message:
+        text = update.message.text or ""
+        caption = update.message.caption or ""
+
+        # Регулярное выражение для поиска скрытых ссылок
+        hidden_link_pattern = r"\[.*?\]\((https?://\S+)\)"  # Markdown формат
+        hidden_link_pattern_html = r'<a href=["\'](https?://\S+)["\']>.*?</a>'  # HTML формат
+
+        # Проверяем текст и подпись к медиа
+        if re.search(hidden_link_pattern, text) or re.search(hidden_link_pattern_html, text):
+            return True
+        if re.search(hidden_link_pattern, caption) or re.search(hidden_link_pattern_html, caption):
+            return True
+    return False
+
 # Проверка, является ли отправитель администратором или владельцем
 async def is_admin_or_owner(chat_id: int, user_id: int, context: CallbackContext) -> bool:
     """Проверяет, является ли пользователь администратором или владельцем группы."""
@@ -137,6 +155,13 @@ async def delete_specific_bot_messages(update: Update, context: CallbackContext)
             message_id = update.message.message_id
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
             print(f"[{request_counter}] Сообщение с текстом '. теперь в группе' или системное сообщение о добавлении удалено в группе '{chat_title}'.")
+            return
+
+        # Удаляем сообщения с рекламой, упоминаниями, ботами или скрытыми ссылками
+        if contains_advertisement(update) or contains_mention_link(update) or contains_hidden_link(update):
+            message_id = update.message.message_id
+            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+            print(f"Рекламное или скрытое ссылочное сообщение от @{sender_username} удалено.")
             return
 
         print(f"[{request_counter}] Сообщение не удалено (не от бота, не содержит рекламу или упоминания).")
