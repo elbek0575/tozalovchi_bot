@@ -52,7 +52,8 @@ def contains_advertisement(update: Update) -> bool:
         url_pattern = r"(https?://|http://|www\.)\S+"
         # Ключевые слова, указывающие на рекламу
         ad_keywords = ["купить", "реклама", "shop", "sale", "http", "https", "интересно", "За подробностями", "прибыль", "пиши", "пишите", "ждем тебя", "ждём тебя", "информация", "безопасно",
-                       "ищу", "Ухοд", "на день", "день", "людей", "доход", "дoхoдoм", "работа", "работу", "человека", "удалёнка", "доллар", "долларов", "oтпрaвляйтe", "в лс", "нужно", "личку", "лич", "легально"]
+                       "ищу", "Ухοд", "на день", "день", "людей", "доход", "дoхoдoм", "работа", "работу", "человека", "удалёнка", "доллар", "долларов", "oтпрaвляйтe", "в лс", "нужно", "личку", "лич", "легально",
+                       "КАЗИНО", "казино", "РАЗДЕВАЙ", ]
         # Проверяем на наличие URL или ключевых слов
         if re.search(url_pattern, text) or any(keyword.lower() in text.lower() for keyword in ad_keywords):
             return True
@@ -71,12 +72,18 @@ def contains_hidden_link(update: Update) -> bool:
         # Регулярное выражение для поиска скрытых ссылок
         hidden_link_pattern = r"\[.*?\]\((https?://\S+)\)"  # Markdown формат
         hidden_link_pattern_html = r'<a href=["\'](https?://\S+)["\']>.*?</a>'  # HTML формат
+        telegram_link_pattern = r"(?:https?://)?t\.me/\S+"  # Телеграм-ссылки
 
         # Проверяем текст и подпись к медиа
-        if re.search(hidden_link_pattern, text) or re.search(hidden_link_pattern_html, text):
+        if (re.search(hidden_link_pattern, text) or
+                re.search(hidden_link_pattern_html, text) or
+                re.search(telegram_link_pattern, text)):
             return True
-        if re.search(hidden_link_pattern, caption) or re.search(hidden_link_pattern_html, caption):
+        if (re.search(hidden_link_pattern, caption) or
+                re.search(hidden_link_pattern_html, caption) or
+                re.search(telegram_link_pattern, caption)):
             return True
+
     return False
 
 # Проверка, является ли отправитель администратором или владельцем
