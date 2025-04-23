@@ -20,23 +20,27 @@ def is_from_specific_bot(update: Update, bot_username: str) -> bool:
 
 # Фильтр для проверки ссылок, начинающихся с @
 def contains_mention_link(update: Update) -> bool:
-    """Проверяет, содержит ли сообщение ссылку, начинающуюся с @."""
-    if update.message:
-        # Проверяем текст сообщения
-        text = update.message.text or ""
-        if "@" in text:
-            return True
+    """Проверяет, содержит ли сообщение ссылку, начинающуюся с @,
+       и помечает её только в чатах, отличных от -1001294217711."""
+    if not update.message:
+        return False
 
-        # Проверяем подпись медиа
-        caption = update.message.caption or ""
-        if "@" in caption:
-            return True
+    chat_id = update.message.chat.id
+    # Если сообщение из “белой” группы, не помечаем его
+    if chat_id == -1001294217711:
+        return False
 
-        # Проверяем пересланные сообщения (только если атрибут доступен)
-        if hasattr(update.message, "forward_from") and update.message.forward_from:
-            forwarded_text = update.message.text or ""
-            if "@" in forwarded_text:
-                return True
+    # Проверяем текст сообщения и подпись
+    text    = update.message.text    or ""
+    caption = update.message.caption or ""
+    if "@" in text or "@" in caption:
+        return True
+
+    # Проверяем пересланные сообщения
+    if hasattr(update.message, "forward_from") and update.message.forward_from:
+        forwarded_text = update.message.text or ""
+        if "@" in forwarded_text:
+            return True
 
     return False
 
