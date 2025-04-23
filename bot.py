@@ -44,6 +44,11 @@ def contains_mention_link(update: Update) -> bool:
 def contains_advertisement(update: Update) -> bool:
     """Проверяет, содержит ли сообщение URL-адреса или рекламные слова."""
     if update.message:
+        chat_id = update.message.chat.id
+        # Если сообщение из указанной группы — не считать его рекламой даже при наличии URL
+        if chat_id == -1001294217711:
+            return False
+
         # Проверяем текст сообщения
         text = update.message.text or ""
         # Проверяем подпись, если есть медиа
@@ -51,15 +56,25 @@ def contains_advertisement(update: Update) -> bool:
         # Регулярное выражение для поиска URL
         url_pattern = r"(https?://|http://|www\.)\S+"
         # Ключевые слова, указывающие на рекламу
-        ad_keywords = ["купить", "реклама", "shop", "sale", "http", "https", "интересно", "За подробностями", "прибыль", "пиши", "пишите", "ждем тебя", "ждём тебя", "информация", "безопасно",
-                       "ищу", "Ухοд", "на день", "день", "людей", "доход", "дoхoдoм", "работа", "работу", "человека", "удалёнка", "доллар", "долларов", "oтпрaвляйтe", "в лс", "нужно", "личку", "лич", "легально",
-                       "КАЗИНО", "казино", "РАЗДЕВАЙ", "нехватки", "investments", "invest", "OPEN", "BUDGET", "OVOZ", "в месяц", "Бонус", "Бонусы", "КРУТИ", "ПРЯМО"]
-        # Проверяем на наличие URL или ключевых слов
+        ad_keywords = [
+            "купить", "реклама", "shop", "sale", "http", "https", "интересно",
+            "За подробностями", "прибыль", "пиши", "пишите", "ждем тебя", "ждём тебя",
+            "информация", "безопасно", "ищу", "Ухοд", "на день", "день", "людей",
+            "доход", "дoхoдoм", "работа", "работу", "человека", "удалёнка",
+            "доллар", "долларов", "oтпрaвляйтe", "в лс", "нужно", "личку", "лич",
+            "легально", "КАЗИНО", "казино", "РАЗДЕВАЙ", "нехватки", "investments",
+            "invest", "OPEN", "BUDGET", "OVOZ", "в месяц", "Бонус", "Бонусы",
+            "КРУТИ", "ПРЯМО"
+        ]
+
+        # Проверяем на наличие URL или ключевых слов в тексте
         if re.search(url_pattern, text) or any(keyword.lower() in text.lower() for keyword in ad_keywords):
             return True
 
+        # Проверяем на наличие URL или ключевых слов в подписи
         if re.search(url_pattern, caption) or any(keyword.lower() in caption.lower() for keyword in ad_keywords):
             return True
+
     return False
 
 # Фильтр для поиска скрытых ссылок (Markdown и HTML)
@@ -73,6 +88,11 @@ def contains_hidden_link(update: Update) -> bool:
         hidden_link_pattern = r"\[.*?\]\((https?://\S+)\)"  # Markdown формат
         hidden_link_pattern_html = r'<a href=["\'](https?://\S+)["\']>.*?</a>'  # HTML формат
         telegram_link_pattern = r"(?:https?://)?t\.me/\S+"  # Телеграм-ссылки
+        if update.message:
+            chat_id = update.message.chat.id
+            # Если сообщение из указанной группы — не считать его рекламой даже при наличии URL
+            if chat_id == -1001294217711:
+                return False
 
         # Проверяем текст и подпись к медиа
         if (re.search(hidden_link_pattern, text) or
