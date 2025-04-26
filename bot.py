@@ -150,6 +150,26 @@ def contains_group_join_message(update: Update) -> bool:
 
     return False
 
+# Фильтр для запрещённых слов (действует в любой группе)
+def contains_prohibited_words(update: Update) -> bool:
+    """Проверяет, содержит ли сообщение запрещённые слова."""
+    if not update.message:
+        return False
+
+    text    = update.message.text    or ""
+    caption = update.message.caption or ""
+    lower_text    = text.lower()
+    lower_caption = caption.lower()
+    prohibited = ["секс", "порно", "sex", "porno"]
+
+    # Если любое из запрещённых слов есть в тексте или в подписи — помечаем True
+    for word in prohibited:
+        if word in lower_text or word in lower_caption:
+            return True
+
+    return False
+
+
 # Обработчик для удаления сообщений
 async def delete_specific_bot_messages(update: Update, context: CallbackContext) -> None:
     global request_counter
@@ -206,6 +226,12 @@ async def delete_specific_bot_messages(update: Update, context: CallbackContext)
             message_id = update.message.message_id
             await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
             print(f"Рекламное или скрытое ссылочное сообщение от @{sender_username} удалено.")
+            return
+
+        #  Проверяем запрещённые слова во всех группах
+        if contains_prohibited_words(update):
+            await context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
+            print(f"[{request_counter}] Удалено из-за запрещённого имя-пользователя.")
             return
 
         print(f"[{request_counter}] Сообщение не удалено (не от бота, не содержит рекламу или упоминания).")
