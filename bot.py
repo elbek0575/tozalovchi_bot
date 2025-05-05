@@ -65,7 +65,8 @@ def contains_advertisement(update: Update) -> bool:
         "долларов", "oтпрaвляйтe", "в лс", "нужно", "личку", "лич",
         "легально", "КАЗИНО", "казино", "РАЗДЕВАЙ", "нехватки", "investments",
         "invest", "OPEN", "BUDGET", "OVOZ", "в месяц", "Бонус", "Бонусы",
-        "КРУТИ", "ПРЯМО", "Получить", "Фальшивые", "Выиграл"
+        "КРУТИ", "ПРЯМО", "Получить", "Фальшивые", "Выиграл", "СЕКС","Секси", "SEX", "Porno", "Порно", "Оставьте заявку",
+        "Оставит"
     ]
 
     # 1) Проверка на URL в тексте — пропускаем URL только из группы -1001294217711
@@ -160,7 +161,7 @@ def contains_prohibited_words(update: Update) -> bool:
     caption = update.message.caption or ""
     lower_text    = text.lower()
     lower_caption = caption.lower()
-    prohibited = ["секс", "порно", "sex", "porno"]
+    prohibited = ["секс", "порно", "sex", "porno", "real sex"]
 
     # Если любое из запрещённых слов есть в тексте или в подписи — помечаем True
     for word in prohibited:
