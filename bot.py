@@ -13,7 +13,7 @@ request_counter = 0
 
 # Ўзгартирилмаслиги керак бўлган user ID
 ALLOWED_USER_ID = 1294217711
-ALLOWED_USER_NAME = "JAJGLOBAL"
+ALLOWED_USER_NAME = "jajglobal"
 
 # Фильтр для проверки отправителя
 def is_from_specific_bot(update: Update, bot_username: str) -> bool:
