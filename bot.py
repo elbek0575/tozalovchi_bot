@@ -11,6 +11,9 @@ TOKEN = os.getenv("BOT")
 # Глобальный счётчик обращений
 request_counter = 0
 
+# Ўзгартирилмаслиги керак бўлган user ID
+ALLOWED_USER_ID = 1294217711
+
 # Фильтр для проверки отправителя
 def is_from_specific_bot(update: Update, bot_username: str) -> bool:
     """Проверяет, что сообщение отправлено конкретным ботом."""
@@ -136,6 +139,7 @@ async def is_admin_or_owner(chat_id: int, user_id: int, context: CallbackContext
         print(f"Ошибка при проверке администратора: {e}")
     return False
 
+
 # Проверка, является ли сообщение системным или содержит текст '. теперь в группе'
 def contains_group_join_message(update: Update) -> bool:
     """Проверяет, является ли сообщение системным о добавлении участника или содержит текст '. теперь в группе'."""
@@ -189,7 +193,12 @@ async def delete_specific_bot_messages(update: Update, context: CallbackContext)
         print(f"[{request_counter}] Текст сообщения: {update.message.text or 'Нет текста'}")
         print(f"[{request_counter}] Тип чата: {update.message.chat.type}")
 
-        # Если отправитель администратор или владелец, не удаляем сообщение
+        # 0. Агар хабар ALLOWED_USER_ID дан бўлса, уни ўчирмаймиз
+        if sender_id == ALLOWED_USER_ID:
+            print(f"[{request_counter}] Сообщение от разрешенного пользователя {ALLOWED_USER_ID} сохранено")
+            return
+
+        # 1. Проверка на администратора/владельца
         if await is_admin_or_owner(chat_id, sender_id, context):
             print(f"[{request_counter}] Сообщение не удалено, так как отправитель администратор или владелец группы.")
             return
