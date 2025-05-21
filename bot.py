@@ -13,6 +13,7 @@ request_counter = 0
 
 # Ўзгартирилмаслиги керак бўлган user ID
 ALLOWED_USER_ID = 1294217711
+ALLOWED_USER_NAME = "JAJGLOBAL"
 
 # Фильтр для проверки отправителя
 def is_from_specific_bot(update: Update, bot_username: str) -> bool:
@@ -192,6 +193,11 @@ async def delete_specific_bot_messages(update: Update, context: CallbackContext)
         print(f"[{request_counter}] Отправитель: @{sender_username}, ID: {sender_id}, Группа: '{chat_title}' (ID: {chat_id})")
         print(f"[{request_counter}] Текст сообщения: {update.message.text or 'Нет текста'}")
         print(f"[{request_counter}] Тип чата: {update.message.chat.type}")
+
+        # -1 даража. Агар хабар ALLOWED_USERNAME дан бўлса, уни ўчирмаймиз
+        if sender_username and sender_username.lower() == ALLOWED_USER_NAME.lower():
+            print(f"[{request_counter}] Сообщение от разрешенного пользователя @{ALLOWED_USER_NAME} сохранено")
+            return
 
         # 0. Агар хабар ALLOWED_USER_ID дан бўлса, уни ўчирмаймиз
         if sender_id == ALLOWED_USER_ID:
