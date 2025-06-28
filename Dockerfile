@@ -1,23 +1,22 @@
-# Python базавий имидж
 FROM python:3.10-slim
 
-# Систем пакеттерни янгилаймиз ва кераклиларини ўрнатамиз
+# Tesseract ва керакли пакетлар
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
-    libtesseract-dev \
-    libleptonica-dev \
     tesseract-ocr-rus \
-    && apt-get clean \
+    libtesseract-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# requirements.txt ни нусхалаш ва пакетларни ўрнатиш
+# Python requirements
+WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Кодни контейнер ичига нусхалаш
-COPY . /app
-WORKDIR /app
+# Иссиқлик (бир хил ишчи фолдера ўтиш)
+COPY . .
 
-# Bot'ни ишга тушириш
+# Heroku ишлаши учун .apt ичидаги путьни белгилаб қўямиз
+ENV ON_HEROKU=1
+
+# Bot ни ишга туширамиз
 CMD ["python", "bot.py"]
-
