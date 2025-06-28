@@ -3,6 +3,9 @@ from telegram.ext import ApplicationBuilder, MessageHandler, CallbackContext, fi
 import os
 from dotenv import load_dotenv
 import re
+from PIL import Image
+import pytesseract
+from io import BytesIO
 
 # Загружаем переменные из .env
 load_dotenv()
@@ -244,6 +247,13 @@ async def delete_specific_bot_messages(update: Update, context: CallbackContext)
             print(f"Рекламное или скрытое ссылочное сообщение от @{sender_username} удалено.")
             return
 
+        # Удаляем сообщение, если в фото есть фальш слова (OCR)
+        if await contains_fake_keywords_in_photo(update, context):
+            message_id = update.message.message_id
+            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+            print(f"[{request_counter}] Сообщение с подозрительным фото удалено (OCR-фильтр).")
+            return
+
         #  Проверяем запрещённые слова во всех группах
         if contains_prohibited_words(update):
             await context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
@@ -253,6 +263,36 @@ async def delete_specific_bot_messages(update: Update, context: CallbackContext)
         print(f"[{request_counter}] Сообщение не удалено (не от бота, не содержит рекламу или упоминания).")
     except Exception as e:
         print(f"Ошибка при удалении сообщения: {e}")
+
+
+# OCR орқали расмда фальш/реклама сўзлари бор-йўқлигини текширади
+async def contains_fake_keywords_in_photo(update: Update, context: CallbackContext) -> bool:
+    """Расм ичида 'фальш', 'подделка' каби сўзлар борми-йўқлигини текширади."""
+    if not update.message or not update.message.photo:
+        return False
+
+    try:
+        # Энг катта resolution'dаги фотони оламиз
+        photo_file = await update.message.photo[-1].get_file()
+        file_bytes = await photo_file.download_as_bytearray()
+
+        # Расмни OCR орқали матнга айлантирамиз
+        image = Image.open(BytesIO(file_bytes))
+        text = pytesseract.image_to_string(image, lang='rus+eng')
+
+        # OCR натижасидан текшириладиган сўзлар
+        keywords = ["фальш", "fakes", "falsh", "подделка", "фальшивые", "fals", "kupyura", "купюры"]
+        for word in keywords:
+            if word.lower() in text.lower():
+                print(f"[OCR] Расмда топилди: {word}")
+                return True
+    except Exception as e:
+        print(f"[OCR] Хатолик: {e}")
+
+    return False
+
+
+
 
 def main():
     # Создаём приложение
