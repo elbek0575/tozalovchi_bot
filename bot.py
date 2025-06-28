@@ -18,6 +18,11 @@ request_counter = 0
 ALLOWED_USER_ID = 1294217711
 ALLOWED_USER_NAME = "jajglobal"
 
+# Heroku'да ишлаганда .apt ичида бўлади
+if os.getenv("ON_HEROKU"):
+    pytesseract.tesseract_cmd = "/app/.apt/usr/bin/tesseract"
+
+
 # Фильтр для проверки отправителя
 def is_from_specific_bot(update: Update, bot_username: str) -> bool:
     """Проверяет, что сообщение отправлено конкретным ботом."""
@@ -293,6 +298,17 @@ async def contains_fake_keywords_in_photo(update: Update, context: CallbackConte
 
 
 
+# Явно указываем путь к Tesseract
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+def ocr_extract_text_russian(image_path: str) -> str:
+    try:
+        text = pytesseract.image_to_string(Image.open(image_path), lang='rus')
+        return text.strip()
+    except Exception as e:
+        print("[OCR] Ошибка:", e)
+        return ""
+
 
 def main():
     # Создаём приложение
@@ -306,3 +322,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    text = ocr_extract_text_russian("falsh_test.png")
+    print("Извлечённый текст:", text)
