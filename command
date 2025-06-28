@@ -3,7 +3,7 @@ D:\Install\ngrok\ngrok.exe http 5000
 
 git add .
 git commit -m "яна куп фильтрлар кушдим!"
-# Docker registry'га логин
+
 heroku container:login
 heroku container:push web -a farrosh-bot
 heroku container:release web -a farrosh-bot
