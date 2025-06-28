@@ -20,7 +20,11 @@ ALLOWED_USER_NAME = "jajglobal"
 
 # Heroku'да ишлаганда .apt ичида бўлади
 if os.getenv("ON_HEROKU"):
-    pytesseract.tesseract_cmd = "/app/.apt/usr/bin/tesseract"
+    # Heroku ичида ишлаётганда
+    pytesseract.pytesseract.tesseract_cmd = "/app/.apt/usr/bin/tesseract"
+else:
+    # Windows локал муҳитида
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 
 # Фильтр для проверки отправителя
