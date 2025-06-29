@@ -20,8 +20,7 @@ ALLOWED_USER_NAME = "jajglobal"
 
 # Heroku'да ишлаганда .apt ичида бўлади
 if os.getenv("ON_HEROKU"):
-    # Heroku ичида ишлаётганда
-    pytesseract.pytesseract.tesseract_cmd = "/app/.apt/usr/bin/tesseract"
+    pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 else:
     # Windows локал муҳитида
     pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -206,6 +205,27 @@ async def delete_specific_bot_messages(update: Update, context: CallbackContext)
         print(f"[{request_counter}] Текст сообщения: {update.message.text or 'Нет текста'}")
         print(f"[{request_counter}] Тип чата: {update.message.chat.type}")
 
+        # 1. OCR фильтр — биринчи навбатда текширилади
+        if await contains_fake_keywords_in_photo(update, context):
+            message_id = update.message.message_id
+            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+            print(f"[{request_counter}] Сообщение с подозрительным фото удалено (OCR-фильтр).")
+            return
+
+        # Агар расм .document сифатида юборилган бўлса
+        if update.message.document and update.message.document.mime_type.startswith("image/"):
+            document_file = await update.message.document.get_file()
+            file_bytes = await document_file.download_as_bytearray()
+
+            image = Image.open(BytesIO(file_bytes))
+            text = pytesseract.image_to_string(image, lang='rus+eng')
+
+            print("[OCR TEXT from DOCUMENT]:", text)
+
+        if not update.message or not update.message.photo:
+            print("[OCR] Фото топилмади!")
+            return False
+
         # -1 даража. Агар хабар ALLOWED_USERNAME дан бўлса, уни ўчирмаймиз
         if sender_username and sender_username.lower() == ALLOWED_USER_NAME.lower():
             print(f"[{request_counter}] Сообщение от разрешенного пользователя @{ALLOWED_USER_NAME} сохранено")
@@ -256,13 +276,6 @@ async def delete_specific_bot_messages(update: Update, context: CallbackContext)
             print(f"Рекламное или скрытое ссылочное сообщение от @{sender_username} удалено.")
             return
 
-        # Удаляем сообщение, если в фото есть фальш слова (OCR)
-        if await contains_fake_keywords_in_photo(update, context):
-            message_id = update.message.message_id
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-            print(f"[{request_counter}] Сообщение с подозрительным фото удалено (OCR-фильтр).")
-            return
-
         #  Проверяем запрещённые слова во всех группах
         if contains_prohibited_words(update):
             await context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
@@ -308,6 +321,7 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 def ocr_extract_text_russian(image_path: str) -> str:
     try:
         text = pytesseract.image_to_string(Image.open(image_path), lang='rus')
+        print("[OCR TEXT]:", text)
         return text.strip()
     except Exception as e:
         print("[OCR] Ошибка:", e)
