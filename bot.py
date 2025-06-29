@@ -1,3 +1,4 @@
+import asyncio
 from telegram import Update, ChatMemberAdministrator, ChatMemberOwner
 from telegram.ext import ApplicationBuilder, MessageHandler, CallbackContext, filters
 import os
@@ -327,18 +328,17 @@ def ocr_extract_text_russian(image_path: str) -> str:
         print("[OCR] Ошибка:", e)
         return ""
 
-
-def main():
-    # Создаём приложение
+async def main():
     application = ApplicationBuilder().token(TOKEN).build()
-
-    # Добавляем обработчик для удаления сообщений
     application.add_handler(MessageHandler(filters.ALL, delete_specific_bot_messages))
-
-    # Запускаем приложение
-    application.run_polling()
+    await application.run_polling()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
     text = ocr_extract_text_russian("falsh_test.png")
     print("Извлечённый текст:", text)
+
+    # Локал тест учун (Heroku эмас)
+    if os.getenv("ON_HEROKU") != "1":
+        text = ocr_extract_text_russian("falsh_test.png")
+        print("Извлечённый текст:", text)
