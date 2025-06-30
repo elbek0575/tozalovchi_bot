@@ -1,16 +1,23 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# requirements.txt ва код файлларини нусхалаш
+COPY . .
+
+# pip'ни янгилаш ва керакли пакетларни ўрнатиш
 
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-rus \
-    libtesseract-dev \
+    libgl1 \
+    poppler-utils \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
+# Порт ва ишга тушириш буйруғи
+EXPOSE 5000
 CMD ["python", "bot.py"]

@@ -8,7 +8,7 @@ load_dotenv()
 
 # Получаем токен из переменной окружения
 TOKEN = os.getenv("BOT")
-NGROK_URL = "https://80c7-89-236-247-151.ngrok-free.app"  # Ваш ngrok URL
+NGROK_URL = "https://a6b3-89-236-247-151.ngrok-free.app"  # Ваш ngrok URL
 print("TOKEN:", TOKEN)
 webhook_url = f"{NGROK_URL}/webhook/"
 url = f"https://api.telegram.org/bot{TOKEN}/setWebhook"
