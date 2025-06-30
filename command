@@ -5,6 +5,8 @@ git push -u origin main
 
 git add .
 git commit -m "Шлюдерда ўзгаришлар"
+git push heroku main
+
 
 heroku container:push web -a farrosh-bot
 heroku container:release web -a farrosh-bot
