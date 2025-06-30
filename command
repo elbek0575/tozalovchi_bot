@@ -5,13 +5,13 @@ git push -u origin main
 
 git add .
 git commit -m "Шлюдерда ўзгаришлар"
-heroku login
-heroku container:login
+
 heroku container:push web -a farrosh-bot
 heroku container:release web -a farrosh-bot
 heroku logs --tail
 
-
+heroku login
+heroku container:login
 
 
 heroku logs --tail -a farrosh-bot
