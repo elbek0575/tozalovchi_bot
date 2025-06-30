@@ -6,7 +6,7 @@ import re
 
 # Загружаем переменные из .env
 load_dotenv()
-TOKEN = os.getenv("BOT")
+TOKEN = os.getenv("BOT_TOKEN")
 
 # Глобальный счётчик обращений
 request_counter = 0
