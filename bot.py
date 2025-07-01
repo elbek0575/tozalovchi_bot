@@ -4,9 +4,14 @@ import os
 from dotenv import load_dotenv
 import re
 
+
 # Загружаем переменные из .env
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
+WEBHOOK_PATH = os.getenv("WEBHOOK_PATH", "/webhook")
+WEBHOOK_URL  = os.getenv("WEBHOOK_URL") + WEBHOOK_PATH
+PORT = int(os.getenv("PORT", 5000))
+
 
 # Глобальный счётчик обращений
 request_counter = 0
@@ -262,8 +267,13 @@ def main():
     # Добавляем обработчик для удаления сообщений
     application.add_handler(MessageHandler(filters.ALL, delete_specific_bot_messages))
 
-    # Запускаем приложение
-    application.run_polling()
+    # Heroku учун Webhook'ни ишга туширамиз
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=WEBHOOK_PATH,
+        webhook_url=WEBHOOK_URL,
+    )
 
 if __name__ == "__main__":
     main()
