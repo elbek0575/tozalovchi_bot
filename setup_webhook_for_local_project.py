@@ -1,4 +1,3 @@
-import requests
 import os
 import httpx
 from dotenv import load_dotenv
@@ -7,10 +6,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Получаем токен из переменной окружения
-TOKEN = os.getenv("BOT")
-NGROK_URL = "https://a6b3-89-236-247-151.ngrok-free.app"  # Ваш ngrok URL
+TOKEN = os.getenv("BOT_TOKEN")
+NGROK_URL = os.getenv("WEBHOOK_BASE")  # Ваш ngrok URL
 print("TOKEN:", TOKEN)
-webhook_url = f"{NGROK_URL}/webhook/"
+webhook_url = f"{NGROK_URL}/webhook"
 url = f"https://api.telegram.org/bot{TOKEN}/setWebhook"
 response = httpx.post(url, json={"url": webhook_url})
 # Отладочные сообщения

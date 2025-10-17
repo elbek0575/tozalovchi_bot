@@ -4,7 +4,7 @@ D:\Install\ngrok\ngrok.exe http 5000
 git push -u origin main
 
 git add .
-git commit -m "Шлюдерда ўзгаришлар"
+git commit -m "Кушимча (/ins) буйруклар кииритилди"
 git push heroku main
 
 
