@@ -186,7 +186,7 @@ async def add_keyword(update: Update, context: CallbackContext) -> None:
     phrase = (m.group(1) if m else "").strip()
 
     if not phrase:
-        await update.message.reply_text("Ишлатиш: /add <фраза>\nМисол: /add Керакли фразани қўшинг")
+        await update.message.reply_text("Ишлатиш: /add <фраза>\nМисол: /add керакли фразани қўшинг")
         return
 
     lower = phrase.lower()
@@ -326,7 +326,7 @@ async def del_keyword(update: Update, context: CallbackContext) -> None:
     m = re.match(r"^/\s*del\b\s*(.*)$", raw, flags=re.IGNORECASE | re.DOTALL)
     phrase = (m.group(1) if m else "").strip()
     if not phrase:
-        await update.message.reply_text("Ишлатиш: /del <фраза>\nМисол: /del Керакли фразани қўшинг")
+        await update.message.reply_text("Ишлатиш: /del <фраза>\nМисол: /del керакли фразани қўшинг")
         return
 
     lower = phrase.lower()
