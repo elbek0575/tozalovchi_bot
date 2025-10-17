@@ -164,21 +164,28 @@ async def add_keyword(update: Update, context: CallbackContext) -> None:
     if not update.message:
         return
 
-    chat_id = update.message.chat_id
-    user    = update.message.from_user
-    user_id = user.id if user else None
+    chat     = update.message.chat
+    chat_id  = update.message.chat_id
+    user     = update.message.from_user
+    user_id  = user.id if user else None
     username = ((user.username or "").lower()) if user else ""
 
-    # 🔓 Рухсат: ID ёки username орқали
-    is_allowed = (user_id in ALLOWED_USER_IDS) or (username in ALLOWED_USERNAMES)
+    # 1) “Рухсат этилган” (вайтлист)
+    is_whitelisted = (user_id in ALLOWED_USER_IDS) or (username in ALLOWED_USERNAMES)
 
-    if not is_allowed and user_id is not None:
-        # Гуруҳда админми ёки private’да эгами — шуни ҳам текшириб оламиз
-        is_allowed = await is_admin_or_owner(chat_id, user_id, context)
-
-    if not is_allowed:
-        await update.message.reply_text("❌ Бу буйруқни фақат админ ёки рухсат этилган фойдаланувчи бажаради.")
-        return
+    # 2) PRIVATE чатда — фақат вайтлист ишлайди
+    if chat.type == ChatType.PRIVATE:
+        if not is_whitelisted:
+            await update.message.reply_text("❌ Бу буйруқни private чатда фақат рухсат этилган фойдаланувчи ишлатади.")
+            return
+    else:
+        # 3) Гуруҳ/супергруппа — админ ёки вайтлист
+        is_allowed = is_whitelisted
+        if not is_allowed and user_id is not None:
+            is_allowed = await is_admin_or_owner(chat_id, user_id, context)
+        if not is_allowed:
+            await update.message.reply_text("❌ Бу буйруқни гуруҳда фақат админ ёки рухсат этилган фойдаланувчи ишлатади.")
+            return
 
     # '/add' ёки '/ add' — иккаласини ҳам қўллаймиз
     raw = update.message.text or ""
@@ -190,8 +197,6 @@ async def add_keyword(update: Update, context: CallbackContext) -> None:
         return
 
     lower = phrase.lower()
-    # Илгариги: if lower in all_keywords_lower():
-    # Янгиси: фақат custom’да бор-йўқни текшириш
     if lower in AD_CUSTOM_KEYWORDS:
         await update.message.reply_text("⚠️ Бу ибора аллақачон фильтрда бор.")
         return
@@ -203,8 +208,7 @@ async def add_keyword(update: Update, context: CallbackContext) -> None:
         pass
 
     await _reply_privately_or_here(
-        update,
-        context,
+        update, context,
         f"✅ Сиз юборган фраза(лар) фильтрга қўшилди: <code>{html.escape(phrase)}</code>",
         parse_mode="HTML",
     )
@@ -308,20 +312,26 @@ async def del_keyword(update: Update, context: CallbackContext) -> None:
     if not update.message:
         return
 
-    chat_id = update.message.chat_id
-    user    = update.message.from_user
-    user_id = user.id if user else None
+    chat     = update.message.chat
+    chat_id  = update.message.chat_id
+    user     = update.message.from_user
+    user_id  = user.id if user else None
     username = (user.username or "").lower() if user and user.username else ""
 
-    # 🔓 Рухсат: ID/username ёки админ/эгаси
-    is_allowed = (user_id in ALLOWED_USER_IDS) or (username in ALLOWED_USERNAMES)
-    if not is_allowed and user_id is not None:
-        is_allowed = await is_admin_or_owner(chat_id, user_id, context)
-    if not is_allowed:
-        await update.message.reply_text("❌ Бу буйруқни фақат админ ёки рухсат этилган фойдаланувчи бажаради.")
-        return
+    is_whitelisted = (user_id in ALLOWED_USER_IDS) or (username in ALLOWED_USERNAMES)
 
-    # '/del' ёки '/ del' — иккаласини ҳам қўллаймиз
+    if chat.type == ChatType.PRIVATE:
+        if not is_whitelisted:
+            await update.message.reply_text("❌ Бу буйруқни private чатда фақат рухсат этилган фойдаланувчи ишлатади.")
+            return
+    else:
+        is_allowed = is_whitelisted
+        if not is_allowed and user_id is not None:
+            is_allowed = await is_admin_or_owner(chat_id, user_id, context)
+        if not is_allowed:
+            await update.message.reply_text("❌ Бу буйруқни гуруҳда фақат админ ёки рухсат этилган фойдаланувчи ишлатади.")
+            return
+
     raw = update.message.text or ""
     m = re.match(r"^/\s*del\b\s*(.*)$", raw, flags=re.IGNORECASE | re.DOTALL)
     phrase = (m.group(1) if m else "").strip()
@@ -330,8 +340,6 @@ async def del_keyword(update: Update, context: CallbackContext) -> None:
         return
 
     lower = phrase.lower()
-
-    # ❗ faqat CUSTOM тўпламдан ўчирилади (default’га тегмаймиз)
     if lower in AD_CUSTOM_KEYWORDS:
         AD_CUSTOM_KEYWORDS.remove(lower)
         try:
@@ -344,16 +352,12 @@ async def del_keyword(update: Update, context: CallbackContext) -> None:
             parse_mode="HTML",
         )
     else:
-        # Ихтиёрий: яқин мослар (substring) топиш — фойдаланувчига ёрдам учун
         similar = [k for k in sorted(AD_CUSTOM_KEYWORDS) if lower in k]
         if similar:
             preview = "\n".join(f"• {s}" for s in similar[:20])
-            await update.message.reply_text(
-                "Тўлиқ мос фразалар топилмади. Қуйида ўхшаш (substring) элементлар бор:\n" + preview
-            )
+            await update.message.reply_text("Тўлиқ мос фразалар топилмади. Қуйида ўхшаш (substring) элементлар бор:\n" + preview)
         else:
             await update.message.reply_text("⚠️ Бу фраза custom фильтрларда топилмади.")
-
 
 
 async def seed_defaults(update: Update, context: CallbackContext) -> None:
