@@ -230,13 +230,13 @@ async def show_keywords(update: Update, context: CallbackContext) -> None:
     user_id = user.id if user else None
     username = (user.username or "").lower() if user and user.username else ""
 
-    # Рухсат
-    is_allowed = (user_id in ALLOWED_USER_IDS) or (username in ALLOWED_USERNAMES)
-    if not is_allowed and user_id is not None:
-        is_allowed = await is_admin_or_owner(chat_id, user_id, context)
-    if not is_allowed:
-        await update.message.reply_text("❌ Бу буйруқни фақат админ ёки рухсат этилган фойдаланувчи кўра олади.")
-        return
+    # # Рухсат
+    # is_allowed = (user_id in ALLOWED_USER_IDS) or (username in ALLOWED_USERNAMES)
+    # if not is_allowed and user_id is not None:
+    #     is_allowed = await is_admin_or_owner(chat_id, user_id, context)
+    # if not is_allowed:
+    #     await update.message.reply_text("❌ Бу буйруқни фақат админ ёки рухсат этилган фойдаланувчи кўра олади.")
+    #     return
 
     # Файлдан custom рўйхатни ўқиб оламиз
     custom = []
