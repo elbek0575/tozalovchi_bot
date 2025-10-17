@@ -276,7 +276,7 @@ async def ins_help(update: Update, context: CallbackContext) -> None:
     if not is_allowed and user_id is not None:
         is_allowed = await is_admin_or_owner(chat_id, user_id, context)
     if not is_allowed:
-        await update.message.reply_text("❌ Бу буйруқни фақат админ ёки рухсат этилган фойдаланувчи кўра олади.")
+        await update.message.reply_text("❌ Бу буйруқни фақат гурух админлари ёки рухсат этилган фойдаланувчи қўллай олади.")
         return
 
     help_html = (
